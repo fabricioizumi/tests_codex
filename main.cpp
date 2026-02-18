@@ -5,15 +5,14 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
-#include <libavcodec/codec_desc.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 #include <SDL2/SDL.h>
 }
 
 static const char* codec_name(AVCodecID id) {
-    const AVCodecDescriptor* desc = avcodec_descriptor_get(id);
-    return (desc && desc->name) ? desc->name : "desconhecido";
+    const AVCodec* decoder = avcodec_find_decoder(id);
+    return (decoder && decoder->name) ? decoder->name : "desconhecido";
 }
 
 class ScopedSDL {
