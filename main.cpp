@@ -17,7 +17,7 @@ static const char* codec_name(AVCodecID id) {
 }
 
 static std::string ff_errstr(int errnum) {
-    char errbuf[AV_ERROR_MAX_STRING_SIZE] = {0};
+    char errbuf[256] = {0};
     av_strerror(errnum, errbuf, sizeof(errbuf));
     return std::string(errbuf);
 }
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     int open_ret = avformat_open_input(&format_ctx, input, nullptr, nullptr);
     if (open_ret < 0) {
         avformat_close_input(&format_ctx);
-        const AVInputFormat* raw_mpeg1 = av_find_input_format("mpegvideo");
+        AVInputFormat* raw_mpeg1 = (AVInputFormat*)av_find_input_format("mpegvideo");
         if (raw_mpeg1) {
             open_ret = avformat_open_input(&format_ctx, input, raw_mpeg1, nullptr);
         }
