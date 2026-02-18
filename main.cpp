@@ -6,6 +6,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/error.h>
 #include <libswscale/swscale.h>
 #include <SDL2/SDL.h>
 }
@@ -13,6 +14,12 @@ extern "C" {
 static const char* codec_name(AVCodecID id) {
     const AVCodec* decoder = avcodec_find_decoder(id);
     return (decoder && decoder->name) ? decoder->name : "desconhecido";
+}
+
+static std::string ff_errstr(int errnum) {
+    char errbuf[AV_ERROR_MAX_STRING_SIZE] = {0};
+    av_strerror(errnum, errbuf, sizeof(errbuf));
+    return std::string(errbuf);
 }
 
 class ScopedSDL {
@@ -34,8 +41,18 @@ int main(int argc, char* argv[]) {
     const char* input = argv[1];
 
     AVFormatContext* format_ctx = nullptr;
-    if (avformat_open_input(&format_ctx, input, nullptr, nullptr) < 0) {
-        std::cerr << "Erro ao abrir arquivo: " << input << "\n";
+    int open_ret = avformat_open_input(&format_ctx, input, nullptr, nullptr);
+    if (open_ret < 0) {
+        avformat_close_input(&format_ctx);
+        const AVInputFormat* raw_mpeg1 = av_find_input_format("mpegvideo");
+        if (raw_mpeg1) {
+            open_ret = avformat_open_input(&format_ctx, input, raw_mpeg1, nullptr);
+        }
+    }
+    if (open_ret < 0) {
+        std::cerr << "Erro ao abrir arquivo: " << input
+                  << " (" << ff_errstr(open_ret) << ")\n"
+                  << "Dica: se for stream MPEG1 bruto, use extensao .m1v/.mpeg ou converta para .mpg (MPEG-PS).\n";
         return 1;
     }
 

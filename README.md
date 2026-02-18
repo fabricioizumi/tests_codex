@@ -25,3 +25,8 @@ make
 ```
 
 > O programa exibe um aviso caso o codec do vídeo não seja MPEG1, mas tenta reproduzir mesmo assim.
+
+
+## Nota sobre formatos
+
+O player tenta abrir automaticamente tanto contêiner MPEG-PS (`.mpg`) quanto stream MPEG1 bruto (`.m1v`/`.mpeg`) usando fallback de demuxer.
