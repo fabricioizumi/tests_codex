@@ -5,9 +5,15 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
+#include <libavcodec/codec_desc.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 #include <SDL2/SDL.h>
+}
+
+static const char* codec_name(AVCodecID id) {
+    const AVCodecDescriptor* desc = avcodec_descriptor_get(id);
+    return (desc && desc->name) ? desc->name : "desconhecido";
 }
 
 class ScopedSDL {
@@ -51,13 +57,13 @@ int main(int argc, char* argv[]) {
     const AVCodecParameters* codecpar = video_stream->codecpar;
     if (codecpar->codec_id != AV_CODEC_ID_MPEG1VIDEO) {
         std::cerr << "Aviso: o codec nao e MPEG1 (detectado: "
-                  << avcodec_get_name(codecpar->codec_id)
+                  << codec_name(codecpar->codec_id)
                   << "). Tentando decodificar mesmo assim.\n";
     }
 
     const AVCodec* codec = avcodec_find_decoder(codecpar->codec_id);
     if (!codec) {
-        std::cerr << "Decoder nao encontrado para " << avcodec_get_name(codecpar->codec_id) << "\n";
+        std::cerr << "Decoder nao encontrado para " << codec_name(codecpar->codec_id) << "\n";
         avformat_close_input(&format_ctx);
         return 1;
     }
